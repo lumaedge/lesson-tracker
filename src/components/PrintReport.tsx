@@ -1,37 +1,16 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useCallback } from "react";
 import type { ClassData } from "@/lib/types";
 import { LESSON_NAMES, LESSON_WEEKS, sortClasses } from "@/lib/types";
 
 export default function PrintReport({ classes }: { classes: ClassData[] }) {
   const ref = useRef<HTMLDivElement>(null);
 
-  function handlePrint() {
+  const handlePrint = useCallback(() => {
     if (!ref.current) return;
-    const content = ref.current.innerHTML;
-    const win = window.open("", "_blank");
-    if (!win) {
-      alert("Pop-up blocked. Please allow pop-ups for this site.");
-      return;
-    }
-    win.document.write(`<!DOCTYPE html>
-<html><head><title>Lesson Progress Report</title>
-<style>
-@page{size:landscape;margin:10mm}
-body{font-family:Arial,sans-serif;color:#1e293b;padding:20px;margin:0}
-h1{font-size:18px;margin:0 0 2px;color:#1F3864}
-h2{font-size:13px;margin:0 0 12px;color:#64748b;font-weight:normal}
-.meta{font-size:11px;color:#888;margin-bottom:16px}
-table{width:100%;border-collapse:collapse}
-th{padding:6px 8px;border:1px solid #ccc;background:#1F3864;color:white;font-size:11px}
-td{padding:4px 8px;border:1px solid #ddd;font-size:11px}
-.summary{margin-top:16px;width:auto}
-.summary th{background:#f1f5f9;color:#1e293b}
-</style></head><body>${content}</body></html>`);
-    win.document.close();
-    setTimeout(() => { win.print(); }, 300);
-  }
+    window.print();
+  }, []);
 
   const sorted = sortClasses(classes);
   const total = sorted.length;
@@ -52,45 +31,35 @@ td{padding:4px 8px;border:1px solid #ddd;font-size:11px}
     <>
       <button
         onClick={handlePrint}
-        className="px-4 py-2 text-sm font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 active:scale-95 transition-all cursor-pointer"
+        className="px-4 py-2 text-sm font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 active:scale-95 transition-all cursor-pointer print:hidden"
       >
         Print Report
       </button>
 
-      <div ref={ref} className="hidden" aria-hidden="true">
-        <h1>Term 3 2026 &mdash; Coding &amp; Robotics</h1>
-        <h2>Eshowe Junior School | Mr Dlamini</h2>
-        <div className="meta">
+      <div ref={ref} className="print-report hidden print:block">
+        <h1 style={{ fontSize: 18, margin: "0 0 2px", color: "#1F3864" }}>
+          Term 3 2026 &mdash; Coding &amp; Robotics
+        </h1>
+        <h2 style={{ fontSize: 13, margin: "0 0 12px", color: "#64748b", fontWeight: "normal" }}>
+          Eshowe Junior School | Mr Dlamini
+        </h2>
+        <p style={{ fontSize: 11, color: "#888", marginBottom: 16 }}>
           Report generated:{" "}
           {new Date().toLocaleDateString("en-ZA", {
             day: "numeric",
             month: "long",
             year: "numeric",
           })}
-        </div>
+        </p>
 
-        <table>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr>
-              <th style={{ textAlign: "left" }}>Day</th>
-              <th style={{ textAlign: "left" }}>Period</th>
-              <th style={{ textAlign: "center" }}>Grade</th>
-              <th style={{ textAlign: "left" }}>Class</th>
-              {LESSON_NAMES.map((name, i) => (
-                <th key={i} style={{ textAlign: "center" }}>
-                  Lesson {i + 1}
-                  <br />
-                  <span style={{ fontWeight: "normal", fontSize: 10 }}>
-                    {LESSON_WEEKS[i]}
-                  </span>
-                  <br />
-                  <span style={{ fontWeight: "normal", fontSize: 10 }}>
-                    {name}
-                  </span>
+              {[...["Day", "Period", "Grade", "Class"], ...LESSON_NAMES.map((n, i) => `Lesson ${i + 1}\n${LESSON_WEEKS[i]}\n${n}`), "Progress", "Notes"].map((h, i) => (
+                <th key={i} style={{ textAlign: i < 4 ? "left" : "center", padding: "6px 8px", border: "1px solid #ccc", background: "#1F3864", color: "white", fontSize: 11, whiteSpace: "pre-line" }}>
+                  {h}
                 </th>
               ))}
-              <th style={{ textAlign: "center" }}>Progress</th>
-              <th style={{ textAlign: "left" }}>Notes</th>
             </tr>
           </thead>
           <tbody>
@@ -103,42 +72,30 @@ td{padding:4px 8px;border:1px solid #ddd;font-size:11px}
                     {idx === 0 && (
                       <td
                         rowSpan={group.classes.length}
-                        style={{
-                          fontWeight: "bold",
-                          fontSize: 12,
-                          verticalAlign: "middle",
-                        }}
+                        style={{ padding: "4px 8px", border: "1px solid #ddd", fontWeight: "bold", fontSize: 12, verticalAlign: "middle" }}
                       >
                         {group.day}
                       </td>
                     )}
-                    <td>P{cls.period}</td>
-                    <td style={{ textAlign: "center" }}>{cls.grade}</td>
-                    <td style={{ fontWeight: "bold", fontSize: 12 }}>
-                      {cls.classCode}
-                    </td>
+                    <td style={{ padding: "4px 8px", border: "1px solid #ddd", fontSize: 11 }}>{cls.period}</td>
+                    <td style={{ padding: "4px 8px", border: "1px solid #ddd", fontSize: 11, textAlign: "center" }}>{cls.grade}</td>
+                    <td style={{ padding: "4px 8px", border: "1px solid #ddd", fontWeight: "bold", fontSize: 12 }}>{cls.classCode}</td>
                     {cls.lessons.map((s, i) => (
                       <td
                         key={i}
                         style={{
                           textAlign: "center",
-                          background:
-                            s === "Done"
-                              ? "#d1fae5"
-                              : s === "Started"
-                              ? "#fef3c7"
-                              : "#f1f5f9",
+                          padding: "4px 6px",
+                          border: "1px solid #ddd",
+                          fontSize: 11,
+                          background: s === "Done" ? "#d1fae5" : s === "Started" ? "#fef3c7" : "#f1f5f9",
                         }}
                       >
                         {s || "\u2014"}
                       </td>
                     ))}
-                    <td style={{ textAlign: "center", fontWeight: "bold" }}>
-                      {pct}%
-                    </td>
-                    <td style={{ fontSize: 10, color: "#666" }}>
-                      {cls.notes || ""}
-                    </td>
+                    <td style={{ textAlign: "center", padding: "4px 8px", border: "1px solid #ddd", fontSize: 11, fontWeight: "bold" }}>{pct}%</td>
+                    <td style={{ padding: "4px 8px", border: "1px solid #ddd", fontSize: 10, color: "#666" }}>{cls.notes || ""}</td>
                   </tr>
                 );
               })
@@ -146,24 +103,21 @@ td{padding:4px 8px;border:1px solid #ddd;font-size:11px}
           </tbody>
         </table>
 
-        <table className="summary">
+        <table style={{ marginTop: 16, fontSize: 12, borderCollapse: "collapse" }}>
           <thead>
             <tr>
-              <th>Total Classes</th>
+              <th style={{ padding: "4px 12px", border: "1px solid #ddd", background: "#f1f5f9" }}>Total Classes</th>
               {LESSON_NAMES.map((_n, i) => (
-                <th key={i}>Lesson {i + 1}</th>
+                <th key={i} style={{ padding: "4px 12px", border: "1px solid #ddd", background: "#f1f5f9" }}>Lesson {i + 1}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td style={{ textAlign: "center", fontWeight: "bold", fontSize: 14 }}>
-                {total}
-              </td>
+              <td style={{ textAlign: "center", padding: "6px 12px", border: "1px solid #ddd", fontWeight: "bold", fontSize: 14 }}>{total}</td>
               {donePerLesson.map((d, i) => (
-                <td key={i} style={{ textAlign: "center" }}>
-                  <strong>{d}</strong>{" "}
-                  <span style={{ color: "#888" }}>/ {total}</span>
+                <td key={i} style={{ textAlign: "center", padding: "6px 8px", border: "1px solid #ddd" }}>
+                  <strong>{d}</strong> <span style={{ color: "#888" }}>/ {total}</span>
                 </td>
               ))}
             </tr>
