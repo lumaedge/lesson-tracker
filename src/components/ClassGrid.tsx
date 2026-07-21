@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { ClassData, LessonStatus } from "@/lib/types";
 import { LESSON_NAMES, LESSON_WEEKS } from "@/lib/types";
 import LessonCell, { cycleStatus } from "./LessonCell";
+import ClassCard from "./ClassCard";
 import ProgressBar from "./ProgressBar";
 
 export default function ClassGrid({ initialClasses }: { initialClasses: ClassData[] }) {
@@ -45,86 +46,103 @@ export default function ClassGrid({ initialClasses }: { initialClasses: ClassDat
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-collapse">
-        <thead>
-          <tr>
-            <th className="text-left text-xs font-semibold text-slate-500 px-3 py-2 border-b border-slate-200">
-              Day
-            </th>
-            <th className="text-left text-xs font-semibold text-slate-500 px-3 py-2 border-b border-slate-200">
-              Period
-            </th>
-            <th className="text-left text-xs font-semibold text-slate-500 px-3 py-2 border-b border-slate-200">
-              Grade
-            </th>
-            <th className="text-left text-xs font-semibold text-slate-500 px-3 py-2 border-b border-slate-200">
-              Class
-            </th>
-            {LESSON_NAMES.map((name, i) => (
-              <th
-                key={i}
-                className="text-center text-xs font-semibold text-slate-500 px-2 py-2 border-b border-slate-200 min-w-[100px]"
-              >
-                <div className="text-[#1F3864]">Lesson {i + 1}</div>
-                <div className="font-normal text-slate-400 mt-0.5">
-                  {LESSON_WEEKS[i]}
-                </div>
-                <div className="font-normal text-slate-500">{name}</div>
-              </th>
-            ))}
-            <th className="text-center text-xs font-semibold text-slate-500 px-3 py-2 border-b border-slate-200 min-w-[120px]">
-              Progress
-            </th>
-            <th className="text-left text-xs font-semibold text-slate-500 px-3 py-2 border-b border-slate-200 min-w-[120px]">
-              Notes
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {classes.map((cls) => {
-            const done = cls.lessons.filter((s) => s === "Done").length;
-            const progress = done / 5;
+    <>
+      {/* Mobile: card layout */}
+      <div className="block md:hidden">
+        <div className="grid gap-3">
+          {classes.map((cls) => (
+            <ClassCard
+              key={cls.id}
+              cls={cls}
+              onToggle={toggleLesson}
+              onNotesChange={updateNotes}
+            />
+          ))}
+        </div>
+      </div>
 
-            return (
-              <tr key={cls.id} className="hover:bg-slate-50/50">
-                <td className="px-3 py-2 text-sm text-slate-700 border-b border-slate-100">
-                  {cls.day}
-                </td>
-                <td className="px-3 py-2 text-sm text-slate-700 border-b border-slate-100">
-                  {cls.period}
-                </td>
-                <td className="px-3 py-2 text-sm font-medium text-slate-700 border-b border-slate-100">
-                  {cls.grade}
-                </td>
-                <td className="px-3 py-2 text-sm font-semibold text-[#1F3864] border-b border-slate-100">
-                  {cls.classCode}
-                </td>
-                {cls.lessons.map((status, i) => (
-                  <td key={i} className="px-2 py-2 border-b border-slate-100">
-                    <LessonCell
-                      status={status}
-                      onToggle={() => toggleLesson(cls.id, i)}
+      {/* Desktop: table layout */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr>
+              <th className="text-left text-xs font-semibold text-slate-500 px-3 py-2 border-b border-slate-200">
+                Day
+              </th>
+              <th className="text-left text-xs font-semibold text-slate-500 px-3 py-2 border-b border-slate-200">
+                Period
+              </th>
+              <th className="text-left text-xs font-semibold text-slate-500 px-3 py-2 border-b border-slate-200">
+                Grade
+              </th>
+              <th className="text-left text-xs font-semibold text-slate-500 px-3 py-2 border-b border-slate-200">
+                Class
+              </th>
+              {LESSON_NAMES.map((name, i) => (
+                <th
+                  key={i}
+                  className="text-center text-xs font-semibold text-slate-500 px-2 py-2 border-b border-slate-200 min-w-[100px]"
+                >
+                  <div className="text-[#1F3864]">Lesson {i + 1}</div>
+                  <div className="font-normal text-slate-400 mt-0.5">
+                    {LESSON_WEEKS[i]}
+                  </div>
+                  <div className="font-normal text-slate-500">{name}</div>
+                </th>
+              ))}
+              <th className="text-center text-xs font-semibold text-slate-500 px-3 py-2 border-b border-slate-200 min-w-[120px]">
+                Progress
+              </th>
+              <th className="text-left text-xs font-semibold text-slate-500 px-3 py-2 border-b border-slate-200 min-w-[120px]">
+                Notes
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {classes.map((cls) => {
+              const done = cls.lessons.filter((s) => s === "Done").length;
+              const progress = done / 5;
+
+              return (
+                <tr key={cls.id} className="hover:bg-slate-50/50">
+                  <td className="px-3 py-2 text-sm text-slate-700 border-b border-slate-100">
+                    {cls.day}
+                  </td>
+                  <td className="px-3 py-2 text-sm text-slate-700 border-b border-slate-100">
+                    {cls.period}
+                  </td>
+                  <td className="px-3 py-2 text-sm font-medium text-slate-700 border-b border-slate-100">
+                    {cls.grade}
+                  </td>
+                  <td className="px-3 py-2 text-sm font-semibold text-[#1F3864] border-b border-slate-100">
+                    {cls.classCode}
+                  </td>
+                  {cls.lessons.map((status, i) => (
+                    <td key={i} className="px-2 py-2 border-b border-slate-100">
+                      <LessonCell
+                        status={status}
+                        onToggle={() => toggleLesson(cls.id, i)}
+                      />
+                    </td>
+                  ))}
+                  <td className="px-3 py-2 border-b border-slate-100">
+                    <ProgressBar value={progress} />
+                  </td>
+                  <td className="px-2 py-2 border-b border-slate-100">
+                    <input
+                      type="text"
+                      value={cls.notes}
+                      onChange={(e) => updateNotes(cls.id, e.target.value)}
+                      className="w-full text-xs px-2 py-1.5 rounded border border-slate-200 focus:border-[#1F3864] outline-none transition-colors"
+                      placeholder="Notes..."
                     />
                   </td>
-                ))}
-                <td className="px-3 py-2 border-b border-slate-100">
-                  <ProgressBar value={progress} />
-                </td>
-                <td className="px-2 py-2 border-b border-slate-100">
-                  <input
-                    type="text"
-                    value={cls.notes}
-                    onChange={(e) => updateNotes(cls.id, e.target.value)}
-                    className="w-full text-xs px-2 py-1.5 rounded border border-slate-200 focus:border-[#1F3864] outline-none transition-colors"
-                    placeholder="Notes..."
-                  />
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -12,9 +12,21 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: "#1F3864",
+};
+
 export const metadata: Metadata = {
   title: "Term 3 Lesson Tracker - Coding & Robotics",
   description: "GigoToys S4A Robotics lesson tracker for Eshowe Junior School",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Lesson Tracker",
+  },
 };
 
 export default function RootLayout({

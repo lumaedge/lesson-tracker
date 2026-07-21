@@ -22,7 +22,7 @@ export default function LessonCell({
   return (
     <button
       onClick={onToggle}
-      className={`w-full text-xs font-medium py-2 px-1 rounded-md border transition-all hover:shadow-sm cursor-pointer ${STYLES[status]}`}
+      className={`w-full text-[11px] md:text-xs font-medium min-h-[36px] md:min-h-[28px] py-1.5 md:py-2 px-1 rounded-md border transition-all hover:shadow-sm active:scale-95 cursor-pointer ${STYLES[status]}`}
       title="Click to cycle: Empty → Started → Done"
     >
       {label}

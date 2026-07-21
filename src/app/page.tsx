@@ -28,18 +28,19 @@ export default function Home() {
   return (
     <PasswordGate>
       <div className="flex flex-col flex-1">
-        <header className="bg-[#1F3864] text-white px-6 py-5 shadow-lg">
-          <h1 className="text-xl font-bold">
-            Term 3 2026 &mdash; Coding & Robotics Lesson Tracker
+        <header className="bg-[#1F3864] text-white px-4 md:px-6 py-3 md:py-5 shadow-lg">
+          <h1 className="text-base md:text-xl font-bold">
+            Term 3 2026 &mdash; Coding & Robotics
           </h1>
-          <p className="text-sm text-blue-200 mt-1">
-            GigoToys S4A Robotics &nbsp;|&nbsp; Eshowe Junior School
-            &nbsp;|&nbsp; Mr Dlamini &nbsp;|&nbsp; Click each cell: Empty
-            &rarr; Started &rarr; Done
+          <p className="text-xs md:text-sm text-blue-200 mt-0.5 md:mt-1">
+            GigoToys S4A Robotics | Eshowe Junior School | Mr Dlamini
+          </p>
+          <p className="text-[10px] md:text-xs text-blue-300 mt-0.5 hidden md:block">
+            Click each cell: Empty &rarr; Started &rarr; Done
           </p>
         </header>
 
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-3 md:p-6">
           {loading ? (
             <div className="flex items-center justify-center py-20">
               <div className="animate-pulse text-slate-400">
@@ -61,7 +62,7 @@ export default function Home() {
                   donePerLesson={stats.donePerLesson}
                 />
               )}
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden p-3 md:p-0 md:block">
                 <ClassGrid initialClasses={classes} />
               </div>
             </>

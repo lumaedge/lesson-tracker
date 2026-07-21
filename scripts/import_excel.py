@@ -36,7 +36,7 @@ def import_from_excel(excel_path: str = EXCEL_PATH, api_base: str = API_BASE):
             "id": class_id,
             "day": str(day),
             "period": str(period),
-            "grade": int(grade) if grade else 0,
+            "grade": int(str(grade).replace("Grade ", "").strip()) if grade else 0,
             "classCode": str(class_code),
             "lessons": lessons,
             "notes": str(row[10] or ""),
