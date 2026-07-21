@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { ClassData, LessonStatus } from "@/lib/types";
-import { LESSON_NAMES, LESSON_WEEKS } from "@/lib/types";
+import { LESSON_NAMES, LESSON_WEEKS, sortClasses } from "@/lib/types";
 import LessonCell, { cycleStatus } from "./LessonCell";
 import ClassCard from "./ClassCard";
 import ProgressBar from "./ProgressBar";
 
 export default function ClassGrid({ initialClasses }: { initialClasses: ClassData[] }) {
   const [classes, setClasses] = useState(initialClasses);
+  const sorted = useMemo(() => sortClasses(classes), [classes]);
 
   async function toggleLesson(classId: string, lessonIndex: number) {
     setClasses((prev) =>
@@ -50,7 +51,7 @@ export default function ClassGrid({ initialClasses }: { initialClasses: ClassDat
       {/* Mobile: card layout */}
       <div className="block md:hidden">
         <div className="grid gap-3">
-          {classes.map((cls) => (
+          {sorted.map((cls) => (
             <ClassCard
               key={cls.id}
               cls={cls}
@@ -99,7 +100,7 @@ export default function ClassGrid({ initialClasses }: { initialClasses: ClassDat
             </tr>
           </thead>
           <tbody>
-            {classes.map((cls) => {
+            {sorted.map((cls) => {
               const done = cls.lessons.filter((s) => s === "Done").length;
               const progress = done / 5;
 

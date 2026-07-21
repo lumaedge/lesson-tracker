@@ -30,3 +30,18 @@ export const LESSON_WEEKS = [
   "Wks 7-8",
   "Wks 9-10",
 ] as const;
+
+const DAY_ORDER = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+
+function periodSortKey(period: string): number {
+  const match = period.match(/P(\d+)/);
+  return match ? parseInt(match[1]) : 99;
+}
+
+export function sortClasses(classes: ClassData[]): ClassData[] {
+  return [...classes].sort((a, b) => {
+    const dayDiff = DAY_ORDER.indexOf(a.day) - DAY_ORDER.indexOf(b.day);
+    if (dayDiff !== 0) return dayDiff;
+    return periodSortKey(a.period) - periodSortKey(b.period);
+  });
+}

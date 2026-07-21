@@ -5,6 +5,7 @@ import type { ClassData } from "@/lib/types";
 import PasswordGate from "@/components/PasswordGate";
 import ClassGrid from "@/components/ClassGrid";
 import StatsBar from "@/components/StatsBar";
+import PrintReport from "@/components/PrintReport";
 
 export default function Home() {
   const [classes, setClasses] = useState<ClassData[] | null>(null);
@@ -29,15 +30,22 @@ export default function Home() {
     <PasswordGate>
       <div className="flex flex-col flex-1">
         <header className="bg-[#1F3864] text-white px-4 md:px-6 py-3 md:py-5 shadow-lg">
-          <h1 className="text-base md:text-xl font-bold">
-            Term 3 2026 &mdash; Coding & Robotics
-          </h1>
-          <p className="text-xs md:text-sm text-blue-200 mt-0.5 md:mt-1">
-            GigoToys S4A Robotics | Eshowe Junior School | Mr Dlamini
-          </p>
-          <p className="text-[10px] md:text-xs text-blue-300 mt-0.5 hidden md:block">
-            Click each cell: Empty &rarr; Started &rarr; Done
-          </p>
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-base md:text-xl font-bold">
+                Term 3 2026 &mdash; Coding & Robotics
+              </h1>
+              <p className="text-xs md:text-sm text-blue-200 mt-0.5 md:mt-1">
+                GigoToys S4A Robotics | Eshowe Junior School | Mr Dlamini
+              </p>
+              <p className="text-[10px] md:text-xs text-blue-300 mt-0.5 hidden md:block">
+                Click each cell: Empty &rarr; Started &rarr; Done
+              </p>
+            </div>
+            {classes && classes.length > 0 && (
+              <PrintReport classes={classes} />
+            )}
+          </div>
         </header>
 
         <main className="flex-1 p-3 md:p-6">

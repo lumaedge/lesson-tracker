@@ -1,8 +1,7 @@
 "use client";
 
-import type { ClassData, LessonStatus } from "@/lib/types";
-import { LESSON_NAMES } from "@/lib/types";
-import LessonCell, { cycleStatus } from "./LessonCell";
+import type { ClassData } from "@/lib/types";
+import LessonCell from "./LessonCell";
 import ProgressBar from "./ProgressBar";
 
 export default function ClassCard({
