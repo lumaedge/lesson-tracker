@@ -12,7 +12,7 @@ export interface ClassData {
 }
 
 export interface AttendanceRecord {
-  present: number;
+  absent: number;
 }
 
 export type AttendanceData = Record<string, Record<string, AttendanceRecord>>;

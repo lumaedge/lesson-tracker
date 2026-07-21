@@ -34,19 +34,19 @@ export default function Home() {
   }, []);
 
   const handleSaveAttendance = useCallback(
-    async (classId: string, date: string, present: number) => {
+    async (classId: string, date: string, absent: number) => {
       setAttendance((prev) => ({
         ...prev,
         [classId]: {
           ...prev[classId],
-          [date]: { present },
+          [date]: { absent },
         },
       }));
 
       await fetch("/api/attendance/save", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ classId, date, present }),
+        body: JSON.stringify({ classId, date, absent }),
       });
     },
     []

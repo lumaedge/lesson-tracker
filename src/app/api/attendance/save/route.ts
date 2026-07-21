@@ -4,12 +4,12 @@ export async function PUT(request: Request) {
   const body = (await request.json()) as {
     classId: string;
     date: string;
-    present: number;
+    absent: number;
   };
 
-  const { classId, date, present } = body;
+  const { classId, date, absent } = body;
 
-  if (!classId || !date || present < 0) {
+  if (!classId || !date || absent < 0) {
     return Response.json({ error: "Invalid data" }, { status: 400 });
   }
 
@@ -19,7 +19,7 @@ export async function PUT(request: Request) {
     data[classId] = {};
   }
 
-  data[classId][date] = { present };
+  data[classId][date] = { absent };
 
   await setAttendance(data);
   return Response.json({ ok: true });
