@@ -1,6 +1,6 @@
 "use client";
 
-import type { LessonStatus } from "@/lib/types";
+export type LessonStatus = "" | "Started" | "Done";
 
 const CYCLE: LessonStatus[] = ["", "Started", "Done"];
 
@@ -33,4 +33,16 @@ export default function LessonCell({
 export function cycleStatus(current: LessonStatus): LessonStatus {
   const idx = CYCLE.indexOf(current);
   return CYCLE[(idx + 1) % CYCLE.length];
+}
+
+export function prismaStatusToDisplay(status: string): LessonStatus {
+  if (status === "DONE") return "Done";
+  if (status === "STARTED") return "Started";
+  return "";
+}
+
+export function displayToPrismaStatus(status: LessonStatus): string {
+  if (status === "Done") return "DONE";
+  if (status === "Started") return "STARTED";
+  return "NOT_STARTED";
 }

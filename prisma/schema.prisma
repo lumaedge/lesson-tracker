@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ── Auth & Users ──────────────────────────────────────
+
+enum Role {
+  TEACHER
+  HOD
+  PRINCIPAL
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      Role     @default(TEACHER)
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  classes      Class[]
+  department   Department? @relation("HODDepartment", fields: [departmentId], references: [id])
+  departmentId String?    @unique
+  auditLogs    AuditLog[]
+
+  @@map("users")
+}
+
+// ── Departments ───────────────────────────────────────
+
+model Department {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  hod      User?     @relation("HODDepartment")
+  subjects Subject[]
+
+  @@map("departments")
+}
+
+// ── Subjects & Curriculum ─────────────────────────────
+
+model Subject {
+  id           String   @id @default(cuid())
+  name         String
+  departmentId String
+  createdAt    DateTime @default(now())
+
+  department  Department  @relation(fields: [departmentId], references: [id])
+  curricula   Curriculum[]
+  classes     Class[]
+
+  @@map("subjects")
+}
+
+model Curriculum {
+  id          String   @id @default(cuid())
+  subjectId   String
+  termName    String
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  subject   Subject  @relation(fields: [subjectId], references: [id])
+  lessons   Lesson[]
+
+  @@unique([subjectId, termName])
+  @@map("curricula")
+}
+
+model Lesson {
+  id           String   @id @default(cuid())
+  curriculumId String
+  name         String
+  weekRange    String
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  curriculum Curriculum @relation(fields: [curriculumId], references: [id])
+  progress   Progress[]
+
+  @@map("lessons")
+}
+
+// ── Classes & Progress ────────────────────────────────
+
+model Class {
+  id        String   @id @default(cuid())
+  teacherId String
+  subjectId String
+  day       String
+  period    String
+  grade     Int
+  classCode String
+  notes     String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  teacher  User     @relation(fields: [teacherId], references: [id])
+  subject  Subject  @relation(fields: [subjectId], references: [id])
+  progress Progress[]
+
+  @@unique([teacherId, subjectId, grade, classCode])
+  @@map("classes")
+}
+
+enum LessonStatus {
+  NOT_STARTED
+  STARTED
+  DONE
+}
+
+model Progress {
+  id        String   @id @default(cuid())
+  classId   String
+  lessonId  String
+  status    LessonStatus @default(NOT_STARTED)
+  markedAt  DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  class  Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+  lesson Lesson  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([classId, lessonId])
+  @@map("progress")
+}
+
+// ── Audit Log ─────────────────────────────────────────
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  entity    String
+  entityId  String
+  details   Json?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}

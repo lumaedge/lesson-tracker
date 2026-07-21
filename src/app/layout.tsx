@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Providers from "@/components/Providers";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -20,8 +21,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Term 3 Lesson Tracker - Coding & Robotics",
-  description: "GigoToys S4A Robotics lesson tracker for Eshowe Junior School",
+  title: "Lesson Tracker - Coding & Robotics",
+  description: "School-wide lesson tracker for Coding & Robotics",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -40,7 +41,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-slate-50">
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
