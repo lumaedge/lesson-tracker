@@ -1,9 +1,38 @@
 "use client";
 
+import { useRef } from "react";
 import type { ClassData } from "@/lib/types";
 import { LESSON_NAMES, LESSON_WEEKS, sortClasses } from "@/lib/types";
 
 export default function PrintReport({ classes }: { classes: ClassData[] }) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  function handlePrint() {
+    if (!ref.current) return;
+    const content = ref.current.innerHTML;
+    const win = window.open("", "_blank");
+    if (!win) {
+      alert("Pop-up blocked. Please allow pop-ups for this site.");
+      return;
+    }
+    win.document.write(`<!DOCTYPE html>
+<html><head><title>Lesson Progress Report</title>
+<style>
+@page{size:landscape;margin:10mm}
+body{font-family:Arial,sans-serif;color:#1e293b;padding:20px;margin:0}
+h1{font-size:18px;margin:0 0 2px;color:#1F3864}
+h2{font-size:13px;margin:0 0 12px;color:#64748b;font-weight:normal}
+.meta{font-size:11px;color:#888;margin-bottom:16px}
+table{width:100%;border-collapse:collapse}
+th{padding:6px 8px;border:1px solid #ccc;background:#1F3864;color:white;font-size:11px}
+td{padding:4px 8px;border:1px solid #ddd;font-size:11px}
+.summary{margin-top:16px;width:auto}
+.summary th{background:#f1f5f9;color:#1e293b}
+</style></head><body>${content}</body></html>`);
+    win.document.close();
+    setTimeout(() => { win.print(); }, 300);
+  }
+
   const sorted = sortClasses(classes);
   const total = sorted.length;
 
@@ -15,141 +44,132 @@ export default function PrintReport({ classes }: { classes: ClassData[] }) {
   }
 
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-
-  function handlePrint() {
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-
-    const grouped = days
-      .map((day) => ({
-        day,
-        classes: sorted.filter((c) => c.day === day),
-      }))
-      .filter((g) => g.classes.length > 0);
-
-    const lessonHeaders = LESSON_NAMES.map(
-      (name, i) => `<th style="text-align:center;padding:6px 8px;border:1px solid #ccc;background:#1F3864;color:white;font-size:11px;">
-        <div>Lesson ${i + 1}</div>
-        <div style="font-weight:normal;font-size:10px;">${LESSON_WEEKS[i]}</div>
-        <div style="font-weight:normal;font-size:10px;">${name}</div>
-      </th>`
-    ).join("");
-
-    let tableRows = "";
-    for (const group of grouped) {
-      for (let idx = 0; idx < group.classes.length; idx++) {
-        const cls = group.classes[idx];
-        const done = cls.lessons.filter((s) => s === "Done").length;
-        const pct = Math.round((done / 5) * 100);
-        const statusCells = cls.lessons
-          .map((s) => {
-            const color =
-              s === "Done"
-                ? "#d1fae5"
-                : s === "Started"
-                ? "#fef3c7"
-                : "#f1f5f9";
-            const label = s || "—";
-            return `<td style="text-align:center;padding:4px 6px;border:1px solid #ddd;background:${color};font-size:11px;">${label}</td>`;
-          })
-          .join("");
-        tableRows += `<tr>
-          ${idx === 0 ? `<td rowspan="${group.classes.length}" style="padding:4px 8px;border:1px solid #ddd;font-weight:bold;font-size:12px;vertical-align:middle;">${group.day}</td>` : ""}
-          <td style="padding:4px 8px;border:1px solid #ddd;font-size:11px;">P${cls.period}</td>
-          <td style="padding:4px 8px;border:1px solid #ddd;font-size:11px;text-align:center;">${cls.grade}</td>
-          <td style="padding:4px 8px;border:1px solid #ddd;font-weight:bold;font-size:12px;">${cls.classCode}</td>
-          ${statusCells}
-          <td style="text-align:center;padding:4px 8px;border:1px solid #ddd;font-size:11px;font-weight:bold;">${pct}%</td>
-          <td style="padding:4px 8px;border:1px solid #ddd;font-size:10px;color:#666;">${cls.notes || ""}</td>
-        </tr>`;
-      }
-    }
-
-    const statsRow = donePerLesson
-      .map(
-        (done) =>
-          `<td style="text-align:center;padding:6px 8px;border:1px solid #ddd;font-size:12px;">
-            <strong>${done}</strong> <span style="color:#888;">/ ${total}</span>
-          </td>`
-      )
-      .join("");
-
-    const html = `<!DOCTYPE html>
-<html>
-<head>
-  <title>Lesson Progress Report - Term 3 2026</title>
-  <style>
-    @media print {
-      body { margin: 0; }
-      @page { size: landscape; margin: 10mm; }
-    }
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      color: #1e293b;
-      padding: 20px;
-    }
-    h1 { font-size: 18px; margin: 0 0 2px 0; color: #1F3864; }
-    h2 { font-size: 13px; margin: 0 0 12px 0; color: #64748b; font-weight: normal; }
-    .meta { font-size: 11px; color: #888; margin-bottom: 16px; }
-    table { width: 100%; border-collapse: collapse; }
-    .summary { margin-top: 16px; font-size: 12px; }
-    .summary td { padding: 4px 8px; border: 1px solid #ddd; }
-  </style>
-</head>
-<body>
-  <h1>Term 3 2026 &mdash; Coding &amp; Robotics</h1>
-  <h2>Eshowe Junior School | Mr Dlamini</h2>
-  <div class="meta">Report generated: ${new Date().toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" })}</div>
-
-  <table>
-    <thead>
-      <tr>
-        <th style="text-align:left;padding:6px 8px;border:1px solid #ccc;background:#1F3864;color:white;font-size:11px;">Day</th>
-        <th style="text-align:left;padding:6px 8px;border:1px solid #ccc;background:#1F3864;color:white;font-size:11px;">Period</th>
-        <th style="text-align:center;padding:6px 8px;border:1px solid #ccc;background:#1F3864;color:white;font-size:11px;">Grade</th>
-        <th style="text-align:left;padding:6px 8px;border:1px solid #ccc;background:#1F3864;color:white;font-size:11px;">Class</th>
-        ${lessonHeaders}
-        <th style="text-align:center;padding:6px 8px;border:1px solid #ccc;background:#1F3864;color:white;font-size:11px;">Progress</th>
-        <th style="text-align:left;padding:6px 8px;border:1px solid #ccc;background:#1F3864;color:white;font-size:11px;">Notes</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${tableRows}
-    </tbody>
-  </table>
-
-  <table class="summary" style="width:auto;margin-top:16px;">
-    <thead>
-      <tr>
-        <th style="padding:4px 12px;border:1px solid #ddd;background:#f1f5f9;font-size:11px;">Total Classes</th>
-        ${LESSON_NAMES.map(
-          (_n, idx) =>
-            `<th style="padding:4px 12px;border:1px solid #ddd;background:#f1f5f9;font-size:11px;">Lesson ${idx + 1}</th>`
-        ).join("")}
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td style="text-align:center;padding:6px 12px;border:1px solid #ddd;font-weight:bold;font-size:14px;">${total}</td>
-        ${statsRow}
-      </tr>
-    </tbody>
-  </table>
-</body>
-</html>`;
-
-    printWindow.document.write(html);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => printWindow.print(), 500);
-  }
+  const grouped = days
+    .map((day) => ({ day, classes: sorted.filter((c) => c.day === day) }))
+    .filter((g) => g.classes.length > 0);
 
   return (
-    <button
-      onClick={handlePrint}
-      className="px-4 py-2 text-sm font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 active:scale-95 transition-all cursor-pointer"
-    >
-      Print Report
-    </button>
+    <>
+      <button
+        onClick={handlePrint}
+        className="px-4 py-2 text-sm font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 active:scale-95 transition-all cursor-pointer"
+      >
+        Print Report
+      </button>
+
+      <div ref={ref} className="hidden" aria-hidden="true">
+        <h1>Term 3 2026 &mdash; Coding &amp; Robotics</h1>
+        <h2>Eshowe Junior School | Mr Dlamini</h2>
+        <div className="meta">
+          Report generated:{" "}
+          {new Date().toLocaleDateString("en-ZA", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          })}
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style={{ textAlign: "left" }}>Day</th>
+              <th style={{ textAlign: "left" }}>Period</th>
+              <th style={{ textAlign: "center" }}>Grade</th>
+              <th style={{ textAlign: "left" }}>Class</th>
+              {LESSON_NAMES.map((name, i) => (
+                <th key={i} style={{ textAlign: "center" }}>
+                  Lesson {i + 1}
+                  <br />
+                  <span style={{ fontWeight: "normal", fontSize: 10 }}>
+                    {LESSON_WEEKS[i]}
+                  </span>
+                  <br />
+                  <span style={{ fontWeight: "normal", fontSize: 10 }}>
+                    {name}
+                  </span>
+                </th>
+              ))}
+              <th style={{ textAlign: "center" }}>Progress</th>
+              <th style={{ textAlign: "left" }}>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {grouped.map((group) =>
+              group.classes.map((cls, idx) => {
+                const done = cls.lessons.filter((s) => s === "Done").length;
+                const pct = Math.round((done / 5) * 100);
+                return (
+                  <tr key={cls.id}>
+                    {idx === 0 && (
+                      <td
+                        rowSpan={group.classes.length}
+                        style={{
+                          fontWeight: "bold",
+                          fontSize: 12,
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        {group.day}
+                      </td>
+                    )}
+                    <td>P{cls.period}</td>
+                    <td style={{ textAlign: "center" }}>{cls.grade}</td>
+                    <td style={{ fontWeight: "bold", fontSize: 12 }}>
+                      {cls.classCode}
+                    </td>
+                    {cls.lessons.map((s, i) => (
+                      <td
+                        key={i}
+                        style={{
+                          textAlign: "center",
+                          background:
+                            s === "Done"
+                              ? "#d1fae5"
+                              : s === "Started"
+                              ? "#fef3c7"
+                              : "#f1f5f9",
+                        }}
+                      >
+                        {s || "\u2014"}
+                      </td>
+                    ))}
+                    <td style={{ textAlign: "center", fontWeight: "bold" }}>
+                      {pct}%
+                    </td>
+                    <td style={{ fontSize: 10, color: "#666" }}>
+                      {cls.notes || ""}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+
+        <table className="summary">
+          <thead>
+            <tr>
+              <th>Total Classes</th>
+              {LESSON_NAMES.map((_n, i) => (
+                <th key={i}>Lesson {i + 1}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style={{ textAlign: "center", fontWeight: "bold", fontSize: 14 }}>
+                {total}
+              </td>
+              {donePerLesson.map((d, i) => (
+                <td key={i} style={{ textAlign: "center" }}>
+                  <strong>{d}</strong>{" "}
+                  <span style={{ color: "#888" }}>/ {total}</span>
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
