@@ -46,6 +46,18 @@ export default function ClassGrid({ initialClasses }: { initialClasses: ClassDat
     });
   }
 
+  async function updateTotalStudents(classId: string, total: number) {
+    setClasses((prev) =>
+      prev.map((c) => (c.id === classId ? { ...c, totalStudents: total } : c))
+    );
+
+    await fetch(`/api/classes/${classId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ totalStudents: total }),
+    });
+  }
+
   return (
     <>
       {/* Mobile: card layout */}
@@ -57,6 +69,7 @@ export default function ClassGrid({ initialClasses }: { initialClasses: ClassDat
               cls={cls}
               onToggle={toggleLesson}
               onNotesChange={updateNotes}
+              onTotalStudentsChange={updateTotalStudents}
             />
           ))}
         </div>
@@ -78,6 +91,9 @@ export default function ClassGrid({ initialClasses }: { initialClasses: ClassDat
               </th>
               <th className="text-left text-xs font-semibold text-slate-500 px-3 py-2 border-b border-slate-200">
                 Class
+              </th>
+              <th className="text-center text-xs font-semibold text-slate-500 px-3 py-2 border-b border-slate-200">
+                Size
               </th>
               {LESSON_NAMES.map((name, i) => (
                 <th
@@ -117,6 +133,19 @@ export default function ClassGrid({ initialClasses }: { initialClasses: ClassDat
                   </td>
                   <td className="px-3 py-2 text-sm font-semibold text-[#1F3864] border-b border-slate-100">
                     {cls.classCode}
+                  </td>
+                  <td className="px-2 py-2 border-b border-slate-100">
+                    <input
+                      type="number"
+                      min={0}
+                      value={cls.totalStudents || ""}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value);
+                        updateTotalStudents(cls.id, isNaN(val) ? 0 : val);
+                      }}
+                      className="w-14 text-xs px-1 py-1 rounded border border-slate-200 focus:border-[#1F3864] outline-none text-center"
+                      placeholder="0"
+                    />
                   </td>
                   {cls.lessons.map((status, i) => (
                     <td key={i} className="px-2 py-2 border-b border-slate-100">

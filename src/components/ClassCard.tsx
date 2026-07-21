@@ -8,10 +8,12 @@ export default function ClassCard({
   cls,
   onToggle,
   onNotesChange,
+  onTotalStudentsChange,
 }: {
   cls: ClassData;
   onToggle: (classId: string, lessonIndex: number) => void;
   onNotesChange: (classId: string, notes: string) => void;
+  onTotalStudentsChange: (classId: string, total: number) => void;
 }) {
   const done = cls.lessons.filter((s) => s === "Done").length;
   const progress = done / 5;
@@ -49,6 +51,21 @@ export default function ClassCard({
 
       <div className="mb-3">
         <ProgressBar value={progress} />
+      </div>
+
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-xs text-slate-500">Class size:</span>
+        <input
+          type="number"
+          min={0}
+          value={cls.totalStudents || ""}
+          onChange={(e) => {
+            const val = parseInt(e.target.value);
+            onTotalStudentsChange(cls.id, isNaN(val) ? 0 : val);
+          }}
+          className="w-16 text-xs px-2 py-1 rounded border border-slate-200 focus:border-[#1F3864] outline-none text-center"
+          placeholder="0"
+        />
       </div>
 
       <input

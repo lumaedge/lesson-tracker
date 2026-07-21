@@ -8,7 +8,14 @@ export interface ClassData {
   classCode: string;
   lessons: [LessonStatus, LessonStatus, LessonStatus, LessonStatus, LessonStatus];
   notes: string;
+  totalStudents: number;
 }
+
+export interface AttendanceRecord {
+  present: number;
+}
+
+export type AttendanceData = Record<string, Record<string, AttendanceRecord>>;
 
 export interface TermData {
   term: string;

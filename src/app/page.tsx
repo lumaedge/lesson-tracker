@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { ClassData } from "@/lib/types";
+import { useEffect, useState, useCallback } from "react";
+import type { ClassData, AttendanceData } from "@/lib/types";
 import PasswordGate from "@/components/PasswordGate";
 import ClassGrid from "@/components/ClassGrid";
 import StatsBar from "@/components/StatsBar";
 import PrintReport from "@/components/PrintReport";
+import RegisterPanel from "@/components/RegisterPanel";
+
+type Tab = "lessons" | "register";
 
 export default function Home() {
   const [classes, setClasses] = useState<ClassData[] | null>(null);
@@ -13,18 +16,41 @@ export default function Home() {
     total: number;
     donePerLesson: number[];
   } | null>(null);
+  const [attendance, setAttendance] = useState<AttendanceData>({});
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<Tab>("lessons");
 
   useEffect(() => {
     Promise.all([
       fetch("/api/classes").then((r) => r.json()),
       fetch("/api/stats").then((r) => r.json()),
-    ]).then(([termData, statsData]) => {
+      fetch("/api/attendance").then((r) => r.json()),
+    ]).then(([termData, statsData, attData]) => {
       setClasses(termData.classes || []);
       setStats(statsData);
+      setAttendance(attData);
       setLoading(false);
     });
   }, []);
+
+  const handleSaveAttendance = useCallback(
+    async (classId: string, date: string, present: number) => {
+      setAttendance((prev) => ({
+        ...prev,
+        [classId]: {
+          ...prev[classId],
+          [date]: { present },
+        },
+      }));
+
+      await fetch("/api/attendance/save", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ classId, date, present }),
+      });
+    },
+    []
+  );
 
   return (
     <PasswordGate>
@@ -42,8 +68,27 @@ export default function Home() {
                 Click each cell: Empty &rarr; Started &rarr; Done
               </p>
             </div>
-            {classes && classes.length > 0 && (
+            {classes && classes.length > 0 && tab === "lessons" && (
               <PrintReport classes={classes} />
+            )}
+          </div>
+
+          {/* Tab toggle */}
+          <div className="flex gap-1 mt-3">
+            {([["lessons", "Lessons"], ["register", "Register"]] as const).map(
+              ([key, label]) => (
+                <button
+                  key={key}
+                  onClick={() => setTab(key)}
+                  className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-colors cursor-pointer ${
+                    tab === key
+                      ? "bg-white text-[#1F3864]"
+                      : "text-blue-200 hover:text-white hover:bg-white/10"
+                  }`}
+                >
+                  {label}
+                </button>
+              )
             )}
           </div>
         </header>
@@ -64,15 +109,25 @@ export default function Home() {
             </div>
           ) : (
             <>
-              {stats && (
-                <StatsBar
-                  total={stats.total}
-                  donePerLesson={stats.donePerLesson}
+              {tab === "lessons" ? (
+                <>
+                  {stats && (
+                    <StatsBar
+                      total={stats.total}
+                      donePerLesson={stats.donePerLesson}
+                    />
+                  )}
+                  <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden p-3 md:p-0 md:block">
+                    <ClassGrid initialClasses={classes} />
+                  </div>
+                </>
+              ) : (
+                <RegisterPanel
+                  classes={classes}
+                  attendance={attendance}
+                  onSaveAttendance={handleSaveAttendance}
                 />
               )}
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden p-3 md:p-0 md:block">
-                <ClassGrid initialClasses={classes} />
-              </div>
             </>
           )}
         </main>

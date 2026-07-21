@@ -10,6 +10,7 @@ export async function PUT(
     lessonIndex?: number;
     status?: LessonStatus;
     notes?: string;
+    totalStudents?: number;
   };
 
   const data = await getTermData();
@@ -28,6 +29,10 @@ export async function PUT(
 
   if (body.notes !== undefined) {
     data.classes[classIndex].notes = body.notes;
+  }
+
+  if (body.totalStudents !== undefined) {
+    data.classes[classIndex].totalStudents = body.totalStudents;
   }
 
   await setTermData(data);
